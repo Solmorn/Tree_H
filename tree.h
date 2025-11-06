@@ -7,7 +7,7 @@
 #include <stdarg.h>
 
 
-typedef int tree_type;
+typedef const char* tree_type;
 
 static const size_t     CHAR_STRING_SIZE   =  128;
 

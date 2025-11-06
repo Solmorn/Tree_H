@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 
 #include "tree.h"
@@ -14,18 +15,31 @@ int main() {
 
     Tree tree1 = {};
 
-    AddValueToSubtree(&tree1, tree1.root_node_ptr, 33);
-    AddValueToSubtree(&tree1, tree1.root_node_ptr, 93);
-    AddValueToSubtree(&tree1, tree1.root_node_ptr, 2);
-    AddValueToSubtree(&tree1, tree1.root_node_ptr, 3333);
-    AddValueToSubtree(&tree1, tree1.root_node_ptr, 12);
-    AddValueToSubtree(&tree1, tree1.root_node_ptr, 6);
-    AddValueToSubtree(&tree1, tree1.root_node_ptr, 1);
-    AddValueToSubtree(&tree1, tree1.root_node_ptr, 555);
+    char* arr[20];
+    srand((unsigned int)time(NULL));
+
+    for (size_t counter = 0; counter < 20; counter++) {
+
+        int num = rand() % 9 + 1;
+        arr[counter] = (char*)calloc(2, sizeof(char));
+
+        printf("%d\n", num);
+
+        sprintf(arr[counter], "%d", num);
+        printf("%d\n", atoi(arr[counter]));
+    }
+
+
+    for (int i = 0; i < 20; i++) {
+        AddValueToSubtree(&tree1, tree1.root_node_ptr, arr[i]);
+        free(arr[i]);
+    }
 
     PrintNodeInfix(tree1.root_node_ptr);
 
     DumpTree(&tree1, HTMLFileMode, out_html);
+
+    KillSubtree(&tree1, tree1.root_node_ptr);
 
 
     fclose(out_html);

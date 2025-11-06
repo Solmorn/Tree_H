@@ -14,15 +14,15 @@ void PrintNodeInfix(TreeNode* node) {
 
     assert(node);
 
-    printf("(");
+    //printf("(");
 
     if (node->son1) PrintNodeInfix(node->son1);
 
-    printf(" %d ", node->value);
+    printf("%s ", node->value);
 
     if (node->son2) PrintNodeInfix(node->son2);
 
-    printf(")");
+    //printf(")");
 }
 
 void KillSubtree(Tree* tree, TreeNode* node) {
@@ -47,7 +47,7 @@ void AddValueToSubtree(Tree* tree, TreeNode* subtree_root, tree_type value) {
         return;
     }
 
-    if (value > subtree_root->value) {
+    if (atoi(value) > atoi(subtree_root->value)) {
 
         if (subtree_root->son2 == nullptr) {
             subtree_root->son2 = AlocateTreeNode(subtree_root, value);
@@ -110,15 +110,35 @@ void AddDotNodeRanks(TreeNode* cur_node, FILE* out, size_t rank) {
     static size_t node_num = 0;
 
     const char* style = "";
-    const char* fill_color = "lightgray";
     if (cur_node->son1 == nullptr && cur_node->son2 == nullptr) {
         style = "penwidth=3, color=yellow";
     } else if (cur_node->parent == nullptr) {
         style = "penwidth=3, color=black";
+    } else {
+        style = "penwidth=3, color=gray";
     }
-    fprintf(out,
-        "    node%lu [rank=%lu, shape=record, style=\"rounded,filled\", fillcolor=%s, label=\"{ parent: %p | value: %d | { son1: %p | son2: %p } }\", %s];\n",
-        node_num, rank, fill_color, cur_node->parent, cur_node->value, cur_node->son1, cur_node->son2, style);
+    //fprintf(out,
+    //    "    node%lu [rank=%lu, shape=record, style=\"rounded,filled\", fillcolor=%s, label=\"{ parent: %p | ptr: %p | value: \'%s\' | { left: %p | right: %p } }\", %s];\n",
+    //    node_num, rank, fill_color, cur_node->parent, cur_node, cur_node->value, cur_node->son1, cur_node->son2, style);
+    //node_num++;
+
+    fprintf(out,    "node%lu [rank=%lu,\n"
+                        "shape=plaintext,\n"
+                        "label=<"
+                        "  <table BORDER=\"1\" CELLBORDER=\"1\" CELLSPACING=\"0\" BGCOLOR=\"lightgray\">\n"
+                        "    <tr><td>parent: %p</td></tr>\n"
+                        "    <tr><td BGCOLOR=\"lightblue\">ptr: %p</td></tr>\n"
+                        "    <tr><td BGCOLOR=\"lightgreen\">value: %s</td></tr>\n"
+                        "    <tr>\n"
+                        "      <td>\n"
+                        "        <table BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">\n"
+                        "          <tr><td>left: %p</td><td>right: %p</td></tr>\n"
+                        "        </table>\n"
+                        "      </td>\n"
+                        "    </tr>\n"
+                        "  </table>\n"
+                        ">\n"
+                    "%s];\n", node_num, rank, cur_node->parent, cur_node, cur_node->value, cur_node->son1, cur_node->son2, style);
     node_num++;
 
     if (cur_node->son1) AddDotNodeRanks(cur_node->son1, out, rank+1);
@@ -130,7 +150,7 @@ void AddDotArrows(TreeNode* cur_node, FILE* out, size_t from) {
     static size_t node_num = 0;
 
     if (cur_node->parent) {
-        fprintf(out, "node%lu -> node%lu [color=green, weight=2, dir = both];\n", from, node_num);
+        fprintf(out, "node%lu -> node%lu [color=green, weight=2];\n", from, node_num);
     }
     size_t from_cpy = node_num;
     node_num++;
@@ -151,7 +171,6 @@ void MakeDotFromTree(Tree* tree, const char* filename) {
     fprintf(out, "digraph G {\n");
     fprintf(out, "    orientation=portrait;\n");
     fprintf(out, "    rankdir=TB;\n");
-    fprintf(out, "    node [shape=septagon, style=\"filled\", fillcolor=red, fontsize=12];\n");
 
     
     AddDotNodeRanks(tree->root_node_ptr, out, 1);
