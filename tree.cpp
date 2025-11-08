@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <string.h>
 
 #include "tree.h"
 
@@ -18,11 +19,28 @@ void PrintNodeInfix(TreeNode* node) {
 
     if (node->son1) PrintNodeInfix(node->son1);
 
-    printf("%s ", node->value);
+
+    printf(" %s ", node->value);
 
     if (node->son2) PrintNodeInfix(node->son2);
 
     //printf(")");
+}
+
+void FillArrNodeInfix(TreeNode* node, char arr[][CHAR_STRING_SIZE], size_t arr_size) {
+
+    assert(node);
+    static size_t index = 0;
+
+    if (node->son1) FillArrNodeInfix(node->son1, arr, arr_size);
+
+    sprintf(arr[index], "%s", node->value);
+    index++;
+
+    if (node->son2) FillArrNodeInfix(node->son2, arr, arr_size);
+
+    if (index == arr_size) index = 0;
+
 }
 
 void KillSubtree(Tree* tree, TreeNode* node) {
@@ -32,8 +50,12 @@ void KillSubtree(Tree* tree, TreeNode* node) {
     if (node->son1) KillSubtree(tree, node->son1);
     if (node->son2) KillSubtree(tree, node->son2);
 
+    if (node) {
+    free(node->value);
     free(node);
     tree->number_of_elements--;
+    if (tree->number_of_elements == 0) tree->root_node_ptr = nullptr;
+    }
 }
 
 void AddValueToSubtree(Tree* tree, TreeNode* subtree_root, tree_type value) {
@@ -61,13 +83,14 @@ void AddValueToSubtree(Tree* tree, TreeNode* subtree_root, tree_type value) {
             tree->number_of_elements++;
         } else AddValueToSubtree(tree, subtree_root->son1, value);
     }
+
 }
 
 TreeNode* AlocateTreeNode(TreeNode* parent, tree_type value) {
 
     TreeNode* new_node_ptr = (TreeNode*)calloc(1, sizeof(TreeNode));
 
-    new_node_ptr->value = value;
+    new_node_ptr->value = strdup(value);
     new_node_ptr->parent = parent;
 
     return new_node_ptr;

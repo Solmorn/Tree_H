@@ -7,7 +7,7 @@
 #include <stdarg.h>
 
 
-typedef const char* tree_type;
+typedef char* tree_type;
 
 static const size_t     CHAR_STRING_SIZE   =  128;
 
@@ -41,6 +41,7 @@ struct Tree {
 
 
 void PrintNodeInfix(TreeNode* node);
+void FillArrNodeInfix(TreeNode* node, char arr[][CHAR_STRING_SIZE], size_t arr_size);
 void KillSubtree(Tree* tree, TreeNode* node);
 void AddValueToSubtree(Tree* tree, TreeNode* subtree_root, tree_type value);
 TreeNode* AlocateTreeNode(TreeNode* parent, tree_type value);
