@@ -46,6 +46,11 @@ TreeErr AddNewCharacter(TreeNode* node) {
     CALLOC_ANSWER(new_question, MAX_LINE_SIZE); 
     ReadLine(new_question);
 
+    while (strstr(new_question, "no") || strstr(new_question, "not") || strstr(new_question, "do not") || strstr(new_question, "does not")) {
+        printf(RED "\nToo complex. Try again without negative definition:\n" RESET);
+        ReadLine(new_question);
+    }
+
     NodesInsertAtTheEnd(node, name, new_question);
     printf(MAGENTA "\nSuccess, Akinator supplemented\n" RESET);
 
@@ -73,6 +78,8 @@ TreeErr NodesInsertAtTheEnd(TreeNode* node, char* name, char* question) {
 }
 
 TreeErr Akinate(Tree* tree, TreeNode* node) {
+
+    assert(node);
 
     ASSERT_OK(tree);
 

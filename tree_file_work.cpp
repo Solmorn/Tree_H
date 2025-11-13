@@ -9,6 +9,10 @@
 
 
 static TreeNode* ParseTreeFromBuffer(Tree* tree, TreeNode* parent, char** pos) {
+
+    assert(tree);
+    assert(pos);
+
     SKIP_SPACES(*pos);
     if (**pos == '(') {
         (*pos)++;
@@ -18,19 +22,17 @@ static TreeNode* ParseTreeFromBuffer(Tree* tree, TreeNode* parent, char** pos) {
         if (tree->root_node_ptr == nullptr) tree->root_node_ptr = node;
         tree->number_of_elements++; //new node created
 
-
         int cur_str_len = 0;
         sscanf(*pos, "\"%*[^\"]\"%n", &cur_str_len);
         *pos+=cur_str_len-1; // moved to next "
         **pos = '\0';
         (*pos)++;
 
-        TreeDump(tree, HTMLFileMode, "Parsing tree: %s\nPos:%s", __func__, *pos);
 
         node->son1 = ParseTreeFromBuffer(tree, node, pos);
         node->son2 = ParseTreeFromBuffer(tree, node, pos);
 
-
+    
 
         SKIP_SPACES(*pos);
         (*pos)++;
@@ -38,8 +40,10 @@ static TreeNode* ParseTreeFromBuffer(Tree* tree, TreeNode* parent, char** pos) {
         return node;
     } else if (**pos == 'n') {
         *pos += strlen("nill");
+        //TreeDump(tree, HTMLFileMode, "Parsing tree: %s\nPos:%s", __func__, *pos);
         return nullptr;
     }
+
 
     return nullptr;
     
@@ -48,6 +52,9 @@ static TreeNode* ParseTreeFromBuffer(Tree* tree, TreeNode* parent, char** pos) {
 
 
 TreeErr ParseTreeFromFile(Tree* tree, const char* filename) {
+
+    assert(tree);
+    assert(filename);
 
     struct stat buf = {};
     stat(filename, &buf);
@@ -60,7 +67,7 @@ TreeErr ParseTreeFromFile(Tree* tree, const char* filename) {
 
     char* pos = tree->buffer;
     tree->root_node_ptr = ParseTreeFromBuffer(tree, nullptr, &pos);
-    TreeDump(tree, HTMLFileMode, "Parsed tree: %s\nPos:%s", __func__, pos);
+    TreeDump(tree, HTMLFileMode, "Func: %s\nParsed tree\n", __func__);
 
     FILE* test = fopen("test.txt","w");
     fprintf(test, "\n\n%s", pos);
@@ -72,24 +79,81 @@ TreeErr ParseTreeFromFile(Tree* tree, const char* filename) {
 
 }
 
-bool ParsePathToFile(Tree* tree, TreeNode* node, const char* mask, FILE* file, bool* found) {
+struct ForPath {
+    TreeNode* node = nullptr;
+    bool no = false;
+
+};
+
+static size_t ParsePathToBuffer(TreeNode* node, ForPath* buffer) {
+
+    assert(node);
+    assert(buffer);
+
+    if (node->parent != nullptr) {
+        buffer->node = node->parent;
+        if (node->parent->son1 == node) buffer->no = false;
+        if (node->parent->son2 == node) buffer->no = true;
+
+        return 1 + ParsePathToBuffer(node->parent, buffer+1);
+    } else {
+        return 0;
+    }
+}
+
+bool ParsePathToFile(Tree* tree, const char* mask, FILE* file) {
+
+    assert(tree);
+    assert(mask);
+    assert(file);
+
+    if (tree->root_node_ptr == nullptr) return false;
+
+    bool found = false;
+    TreeNode* node = nullptr;
+
+    FindNode(tree, tree->root_node_ptr, mask, &found, &node);
+
+    if (found) {
+
+        ForPath buffer[MAX_NODES_NUMBER] = {};
+
+        size_t size_of_path = ParsePathToBuffer(node, buffer);
+        
+        fprintf(file, "\"%s\"  - ", mask);
+
+        for (ssize_t index = (ssize_t)size_of_path - 1; index >= 0 ; index--) {
+            fprintf(file, " \"%s %s\" ", buffer[index].no ? "not" : "", buffer[index].node->data);
+        }
+    }
+
+    return false;
+}
+
+void FindNode(Tree* tree, TreeNode* node, const char* mask, bool* found, TreeNode** found_node) {
+
+    assert(tree);
+    assert(node);
+    assert(mask);
+    assert(found);
+    assert(found_node);
 
     if (!(strncmp(node->data, mask, strlen(mask)))) {
         *found = true;
-        return true;
+        *found_node = node;
+        return;
     }
 
-    if (node->son1 && ParsePathToFile(tree, node->son1, mask, file, found)) {}
-    else if (node->son2 && ParsePathToFile(tree, node->son2, mask, file, found)) {}
+    if (node->son1 && !*found) FindNode(tree, node->son1, mask, found, found_node);
+    if (node->son2 && !*found) FindNode(tree, node->son2, mask, found, found_node);
 
-    if (*found) fprintf(file, " \"%s\" ", node->data);
-
-    return Ok;
+    return;
 
 }
 
 void PrintFileNodePrefix(TreeNode* node, FILE* file) {
 
+    assert(file);
     assert(node);
 
     fprintf(file, " ( ");
